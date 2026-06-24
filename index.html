@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مهدی علی‌اکبری — مهندس برق</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+:root{--cyan:#00e5ff;--cyan-dim:rgba(0,229,255,0.12);--cyan-glow:rgba(0,229,255,0.55);--amber:#ffaa00;--green:#00ff88;--bg:#03080f;--bg2:#060e1a;--text:#a8c8e8;--bright:#d8f0ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+*,*::before,*::after{cursor:none!important;}
+#cursor{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan-glow),0 0 20px rgba(0,229,255,0.3);pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform .08s ease;}
+#cursor-trail{position:fixed;width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,229,255,0.35);pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:left .12s ease,top .12s ease,width .2s,height .2s;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:9000;}
+canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.circuit-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;background-image:linear-gradient(rgba(0,229,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,1) 1px,transparent 1px);background-size:60px 60px;}
+.wormhole{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,229,255,0.03) 0%,rgba(0,100,200,0.02) 40%,transparent 70%);animation:pulse 10s ease-in-out infinite;z-index:0;pointer-events:none;}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes scan{to{left:140%}}
+@keyframes fadeIn{to{opacity:1}}
+
+/* MUSIC PLAYER */
+#music-player{position:fixed;bottom:2rem;left:2rem;z-index:8000;display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem;background:rgba(3,8,15,0.92);border:1px solid rgba(0,229,255,0.18);backdrop-filter:blur(10px);}
+#music-player .mp-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(0,229,255,0.6);}
+#music-player .mp-sub{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(168,200,232,0.3);margin-top:2px;}
+#music-toggle{background:none;border:1px solid rgba(0,229,255,0.3);color:var(--cyan);width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .3s;flex-shrink:0;}
+#music-toggle:hover{border-color:var(--cyan);box-shadow:0 0 8px rgba(0,229,255,0.3);}
+.mp-wave{display:flex;align-items:center;gap:2px;height:16px;}
+.mp-wave span{width:2px;background:var(--cyan);border-radius:1px;opacity:.6;}
+.mp-wave span:nth-child(1){height:4px;animation:wave 1.2s ease-in-out infinite;}
+.mp-wave span:nth-child(2){height:10px;animation:wave 1.2s ease-in-out infinite .2s;}
+.mp-wave span:nth-child(3){height:16px;animation:wave 1.2s ease-in-out infinite .1s;}
+.mp-wave span:nth-child(4){height:8px;animation:wave 1.2s ease-in-out infinite .3s;}
+.mp-wave span:nth-child(5){height:12px;animation:wave 1.2s ease-in-out infinite .15s;}
+.mp-wave.paused span{animation-play-state:paused;}
+@keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(0.3)}}
+
+/* BOOT */
+#boot-screen{position:fixed;inset:0;background:#020609;z-index:99000;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:4rem;font-family:'Share Tech Mono',monospace;transition:opacity .6s ease;}
+#boot-screen.fade-out{opacity:0;pointer-events:none;}
+.boot-line{font-size:13px;color:var(--cyan);letter-spacing:2px;line-height:2;opacity:0;animation:fadeIn .01s forwards;}
+.boot-line.ok::after{content:'  [OK]';color:var(--green);}
+.boot-line.warn::after{content:'  [WARN]';color:var(--amber);}
+#boot-progress-wrap{margin-top:2rem;width:300px;height:2px;background:rgba(0,229,255,0.1);}
+#boot-progress{height:100%;width:0;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);transition:width .1s linear;}
+
+/* SPA PAGES */
+.spa-page{display:none;opacity:0;transition:opacity .5s ease;}
+.spa-page.active{display:block;}
+.spa-page.visible{opacity:1;}
+
+/* MAIN WRAPPER */
+.page{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 2rem 5rem;opacity:0;transition:opacity .8s ease;}
+.page.visible{opacity:1;}
+
+/* NAV */
+nav{display:flex;justify-content:space-between;align-items:center;padding:1.8rem 0;border-bottom:1px solid rgba(0,229,255,0.12);position:relative;}
+nav::after{content:'';position:absolute;bottom:-1px;left:0;width:120px;height:1px;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);}
+.logo{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:3px;text-shadow:0 0 12px var(--cyan-glow),0 0 24px rgba(0,229,255,0.3);cursor:none;}
+.nav-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--green);letter-spacing:2px;font-family:'Share Tech Mono',monospace;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s ease-in-out infinite;}
+.nav-links{display:flex;gap:2rem;}
+.nav-links a{color:rgba(168,200,232,0.45);text-decoration:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;transition:all .3s;font-family:'Share Tech Mono',monospace;}
+.nav-links a:hover,.nav-links a.active{color:var(--cyan);text-shadow:0 0 8px var(--cyan-glow);}
+
+/* BUTTONS */
+.btn-primary{padding:.85rem 2.2rem;background:transparent;border:1px solid rgba(0,229,255,0.45);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;cursor:none;transition:all .3s;position:relative;overflow:hidden;text-shadow:0 0 8px rgba(0,229,255,0.4);}
+.btn-primary::before{content:'';position:absolute;inset:0;background:var(--cyan-dim);transform:translateX(-100%);transition:transform .3s;}
+.btn-primary:hover::before{transform:translateX(0);}
+.btn-primary:hover{border-color:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,0.2);}
+.btn-ghost{padding:.85rem 1.5rem;background:transparent;border:none;color:rgba(168,200,232,0.3);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;}
+.btn-ghost:hover{color:rgba(255,170,0,0.7);text-shadow:0 0 8px rgba(255,170,0,0.3);}
+
+/* HERO */
+.hero{padding:5rem 0 4rem;}
+.sys-info{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;color:rgba(0,229,255,0.35);margin-bottom:.6rem;}
+.blink-cursor::after{content:'█';animation:blink 1s step-end infinite;color:var(--cyan);}
+.voltage-line{display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,170,0,0.45);letter-spacing:3px;}
+.voltage-bar{flex:1;height:1px;background:rgba(255,170,0,0.15);position:relative;overflow:hidden;}
+.voltage-bar::after{content:'';position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,170,0,0.6),transparent);animation:scan 3s linear infinite;}
+h1{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,4.5vw,3.4rem);font-weight:600;line-height:1.15;color:var(--bright);margin-bottom:.8rem;letter-spacing:2px;position:relative;}
+h1 .glow{color:var(--cyan);text-shadow:0 0 16px var(--cyan-glow),0 0 40px rgba(0,229,255,0.25);}
+h1 .glow-amber{color:var(--amber);text-shadow:0 0 16px rgba(255,170,0,0.7),0 0 36px rgba(255,170,0,0.2);}
+.glitch{position:relative;}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;top:0;left:0;right:0;font-family:'Orbitron',monospace;font-weight:600;opacity:0;}
+.glitch::before{color:rgba(255,0,80,0.7);animation:glitch1 8s infinite;}
+.glitch::after{color:rgba(0,229,255,0.7);animation:glitch2 8s infinite;}
+@keyframes glitch1{0%,94%,100%{opacity:0;transform:none}95%{opacity:1;transform:translate(-3px,1px) skewX(-3deg);clip-path:polygon(0 20%,100% 20%,100% 45%,0 45%)}97%{opacity:1;transform:translate(2px,-1px) skewX(2deg);clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%)}}
+@keyframes glitch2{0%,94%,100%{opacity:0;transform:none}96%{opacity:1;transform:translate(3px,-1px) skewX(2deg);clip-path:polygon(0 50%,100% 50%,100% 70%,0 70%)}98%{opacity:0}}
+.tagline{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(168,200,232,0.4);letter-spacing:5px;text-transform:uppercase;margin-bottom:3rem;margin-top:1rem;}
+.cta-row{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:1.2rem;margin:4rem 0 2.5rem;}
+.divider-line{flex:1;height:1px;background:rgba(0,229,255,0.08);}
+.divider-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:6px;color:rgba(0,229,255,0.3);text-transform:uppercase;}
+.divider-num{font-family:'Orbitron',monospace;font-size:9px;color:rgba(255,170,0,0.3);letter-spacing:2px;}
+
+/* POSTS */
+.posts-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.post-card{padding:2.2rem 1.8rem;background:rgba(6,14,26,0.8);border:1px solid rgba(0,229,255,0.07);cursor:none;transition:all .4s;position:relative;overflow:hidden;}
+.post-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:0;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);transition:height .4s;}
+.post-card:hover::before{height:100%;}
+.post-card:hover{background:rgba(0,229,255,0.025);border-color:rgba(0,229,255,0.15);}
+.post-card.featured{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr;gap:3rem;align-items:center;border-color:rgba(0,229,255,0.12);background:rgba(0,229,255,0.018);}
+.post-addr{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,170,0,0.35);margin-bottom:1rem;text-transform:uppercase;}
+.post-tag{display:inline-flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.6);border:1px solid rgba(0,229,255,0.18);padding:3px 10px;margin-bottom:1rem;text-transform:uppercase;}
+.post-tag::before{content:'▸';font-size:8px;}
+.post-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:600;color:var(--bright);margin-bottom:1rem;line-height:1.4;letter-spacing:1px;}
+.post-title .glow{color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);}
+.featured .post-title{font-size:1.5rem;}
+.post-excerpt{font-size:11px;line-height:2;color:rgba(168,200,232,0.5);margin-bottom:1.5rem;}
+.post-meta{display:flex;align-items:center;gap:1.5rem;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.3);letter-spacing:2px;}
+.post-meta span::before{content:'//';color:rgba(0,229,255,0.2);margin-left:4px;}
+.post-visual{aspect-ratio:4/3;background:rgba(3,8,15,0.9);border:1px solid rgba(0,229,255,0.08);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+
+/* PROJECTS */
+.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.proj-card{padding:1.8rem 1.5rem;background:rgba(6,14,26,0.8);border:1px solid rgba(0,229,255,0.07);position:relative;overflow:hidden;transition:all .4s;cursor:none;}
+.proj-card:hover{background:rgba(0,229,255,0.025);border-color:rgba(0,229,255,0.15);}
+.proj-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.3),transparent);transform:scaleX(0);transition:transform .4s;}
+.proj-card:hover::after{transform:scaleX(1);}
+.proj-status{display:inline-flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;margin-bottom:1rem;}
+.proj-status.done{color:rgba(0,255,136,0.6);}
+.proj-status.wip{color:rgba(255,170,0,0.6);}
+.proj-status.done::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
+.proj-status.wip::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 5px var(--amber);animation:blink 1.5s infinite;}
+.proj-title{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:600;color:var(--bright);margin-bottom:.8rem;letter-spacing:1px;line-height:1.4;}
+.proj-desc{font-size:10px;line-height:1.9;color:rgba(168,200,232,0.45);margin-bottom:1.2rem;}
+.proj-stack{display:flex;flex-wrap:wrap;gap:4px;}
+.stack-tag{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(0,229,255,0.4);border:1px solid rgba(0,229,255,0.12);padding:2px 7px;}
+
+/* TIMELINE */
+.timeline{position:relative;padding-right:2rem;}
+.timeline::before{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(0,229,255,0.12);}
+.tl-item{position:relative;padding-right:2rem;margin-bottom:2.5rem;}
+.tl-item::before{content:'';position:absolute;right:-5px;top:6px;width:9px;height:9px;border-radius:50%;border:1px solid var(--cyan);background:var(--bg);box-shadow:0 0 8px var(--cyan-glow);}
+.tl-item:first-child::before{background:var(--cyan);}
+.tl-year{font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,170,0,0.5);letter-spacing:3px;margin-bottom:.4rem;}
+.tl-title{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--bright);margin-bottom:.3rem;letter-spacing:1px;}
+.tl-sub{font-size:11px;color:rgba(168,200,232,0.45);}
+
+/* ABOUT */
+.about-strip{margin-top:4rem;padding:2.5rem;border:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.015);display:grid;grid-template-columns:1fr 2fr;gap:3rem;align-items:start;position:relative;}
+.about-strip::before{content:'ABOUT.SYS';position:absolute;top:-9px;right:2rem;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.3);background:var(--bg);padding:0 8px;}
+.about-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:5px;color:rgba(0,229,255,0.35);text-transform:uppercase;margin-bottom:.6rem;}
+.about-name{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:600;color:var(--bright);letter-spacing:2px;text-shadow:0 0 20px rgba(0,229,255,0.2);}
+.about-id{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,170,0,0.45);letter-spacing:3px;margin-top:.4rem;text-shadow:0 0 8px rgba(255,170,0,0.2);}
+.about-desc{font-size:11px;line-height:2.1;color:rgba(168,200,232,0.55);}
+.about-desc .highlight{color:var(--cyan);text-shadow:0 0 8px rgba(0,229,255,0.4);}
+.skills-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;}
+.skill-chip{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(0,229,255,0.45);border:1px solid rgba(0,229,255,0.13);padding:4px 10px;text-transform:uppercase;transition:all .3s;cursor:none;}
+.skill-chip:hover{border-color:rgba(0,229,255,0.5);color:var(--cyan);text-shadow:0 0 8px var(--cyan-glow);background:var(--cyan-dim);}
+.social-row{display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;}
+.social-link{display:inline-flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(168,200,232,0.35);border:1px solid rgba(168,200,232,0.1);padding:6px 14px;text-decoration:none;transition:all .3s;cursor:none;}
+.social-link:hover{color:var(--cyan);border-color:rgba(0,229,255,0.4);text-shadow:0 0 6px var(--cyan-glow);}
+.social-link svg{width:12px;height:12px;fill:currentColor;}
+
+/* TERMINAL */
+.terminal-wrap{margin-top:4rem;border:1px solid rgba(0,229,255,0.12);background:rgba(3,8,15,0.95);position:relative;}
+.terminal-wrap::before{content:'TERMINAL.EXE';position:absolute;top:-9px;left:2rem;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.3);background:var(--bg);padding:0 8px;}
+.terminal-bar{padding:.7rem 1.2rem;border-bottom:1px solid rgba(0,229,255,0.08);display:flex;align-items:center;gap:.6rem;}
+.t-dot{width:8px;height:8px;border-radius:50%;}
+.t-dot:nth-child(1){background:rgba(255,80,80,0.5)}
+.t-dot:nth-child(2){background:rgba(255,170,0,0.5)}
+.t-dot:nth-child(3){background:rgba(0,255,136,0.5)}
+.t-title{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,229,255,0.3);letter-spacing:3px;margin-right:auto;}
+#terminal-output{padding:1.5rem 1.5rem .5rem;min-height:140px;max-height:280px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.9;}
+#terminal-output::-webkit-scrollbar{width:4px;}
+#terminal-output::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);}
+.t-line{color:rgba(168,200,232,0.6);}
+.t-line.cmd{color:rgba(0,229,255,0.5);}
+.t-line.cmd::before{content:'> ';color:var(--cyan);}
+.t-line.err{color:rgba(255,80,80,0.6);}
+.t-line.ok{color:rgba(0,255,136,0.6);}
+.t-line.info{color:rgba(255,170,0,0.55);}
+.t-input-row{display:flex;align-items:center;padding:.5rem 1.5rem 1.2rem;border-top:1px solid rgba(0,229,255,0.06);}
+.t-prompt{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan);margin-left:.5rem;white-space:nowrap;}
+#t-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,229,255,0.8);letter-spacing:1px;direction:ltr;}
+
+/* CONTACT */
+.contact-wrap{margin-top:4rem;border:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.015);padding:2.5rem;position:relative;display:none;}
+.contact-wrap.open{display:block;}
+.contact-wrap::before{content:'CONTACT.FORM';position:absolute;top:-9px;right:2rem;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.3);background:var(--bg);padding:0 8px;}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-field{display:flex;flex-direction:column;gap:.4rem;}
+.form-field label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.35);text-transform:uppercase;}
+.form-field input,.form-field textarea{background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);color:var(--bright);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:.7rem 1rem;outline:none;transition:border-color .3s;resize:none;}
+.form-field input:focus,.form-field textarea:focus{border-color:rgba(0,229,255,0.4);box-shadow:0 0 8px rgba(0,229,255,0.08);}
+.form-full{grid-column:1/-1;}
+.form-submit{margin-top:1rem;}
+
+/* ===== PAGE: ARTICLE ===== */
+.article-hero{padding:4rem 0 3rem;border-bottom:1px solid rgba(0,229,255,0.08);margin-bottom:3rem;}
+.article-back{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(0,229,255,0.4);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;margin-bottom:2rem;transition:color .3s;cursor:none;}
+.article-back:hover{color:var(--cyan);}
+.article-tag{display:inline-flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,229,255,0.6);border:1px solid rgba(0,229,255,0.18);padding:3px 10px;margin-bottom:1.2rem;text-transform:uppercase;}
+.article-tag::before{content:'▸';font-size:8px;}
+.article-h1{font-family:'Orbitron',monospace;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:600;color:var(--bright);letter-spacing:2px;line-height:1.2;margin-bottom:1rem;}
+.article-h1 .glow{color:var(--cyan);text-shadow:0 0 16px var(--cyan-glow);}
+.article-meta{display:flex;gap:2rem;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.35);letter-spacing:2px;margin-top:1rem;}
+.article-meta span::before{content:'//';margin-left:4px;color:rgba(0,229,255,0.2);}
+.article-body{max-width:680px;}
+.article-body h2{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:600;color:var(--bright);letter-spacing:2px;margin:3rem 0 1.2rem;padding-bottom:.8rem;border-bottom:1px solid rgba(0,229,255,0.08);}
+.article-body h2 .glow{color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);}
+.article-body p{font-size:13px;line-height:2.2;color:rgba(168,200,232,0.65);margin-bottom:1.5rem;}
+.article-body p .hl{color:var(--cyan);text-shadow:0 0 6px rgba(0,229,255,0.3);}
+.article-body p .hl-amber{color:var(--amber);text-shadow:0 0 6px rgba(255,170,0,0.3);}
+.article-eq{margin:2rem 0;padding:1.5rem 2rem;background:rgba(0,229,255,0.03);border-right:2px solid var(--cyan);font-family:'Share Tech Mono',monospace;font-size:13px;color:rgba(0,229,255,0.7);letter-spacing:2px;direction:ltr;text-align:center;}
+.article-callout{margin:2rem 0;padding:1.5rem;border:1px solid rgba(255,170,0,0.2);background:rgba(255,170,0,0.04);position:relative;}
+.article-callout::before{content:'NOTE';position:absolute;top:-8px;right:1rem;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:rgba(255,170,0,0.5);background:var(--bg);padding:0 6px;}
+.article-callout p{font-size:12px;color:rgba(255,200,100,0.6);margin:0;}
+.article-img-placeholder{margin:2.5rem 0;height:200px;background:rgba(3,8,15,0.8);border:1px solid rgba(0,229,255,0.08);display:flex;align-items:center;justify-content:center;}
+.article-img-placeholder span{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,229,255,0.2);letter-spacing:3px;}
+.related-posts{margin-top:4rem;padding-top:3rem;border-top:1px solid rgba(0,229,255,0.08);}
+.related-title{font-family:'Orbitron',monospace;font-size:.8rem;letter-spacing:4px;color:rgba(0,229,255,0.3);margin-bottom:1.5rem;text-transform:uppercase;}
+.related-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+
+/* ===== PAGE: PROJECTS FULL ===== */
+.proj-filter{display:flex;gap:.8rem;margin-bottom:2rem;flex-wrap:wrap;}
+.filter-btn{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(168,200,232,0.35);border:1px solid rgba(168,200,232,0.1);padding:5px 14px;background:none;text-transform:uppercase;transition:all .3s;cursor:none;}
+.filter-btn:hover,.filter-btn.active{color:var(--cyan);border-color:rgba(0,229,255,0.4);text-shadow:0 0 6px var(--cyan-glow);}
+.proj-card-full{padding:2rem;background:rgba(6,14,26,0.8);border:1px solid rgba(0,229,255,0.07);position:relative;overflow:hidden;transition:all .4s;cursor:none;}
+.proj-card-full::before{content:'';position:absolute;top:0;left:0;width:2px;height:0;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);transition:height .4s;}
+.proj-card-full:hover::before{height:100%;}
+.proj-card-full:hover{background:rgba(0,229,255,0.025);border-color:rgba(0,229,255,0.15);}
+.proj-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;}
+.proj-links{display:flex;gap:.5rem;}
+.proj-link{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(0,229,255,0.4);border:1px solid rgba(0,229,255,0.12);padding:3px 8px;text-decoration:none;transition:all .3s;cursor:none;}
+.proj-link:hover{color:var(--cyan);border-color:rgba(0,229,255,0.5);}
+.proj-progress-wrap{margin-top:1rem;height:2px;background:rgba(0,229,255,0.08);position:relative;}
+.proj-progress{height:100%;background:linear-gradient(90deg,rgba(0,229,255,0.4),var(--cyan));box-shadow:0 0 6px var(--cyan-glow);transition:width 1s ease;}
+
+/* ===== PAGE: ABOUT FULL ===== */
+.about-full-hero{padding:4rem 0 3rem;}
+.about-full-name{font-family:'Orbitron',monospace;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:var(--bright);letter-spacing:3px;text-shadow:0 0 30px rgba(0,229,255,0.2);}
+.about-full-name .glow{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow),0 0 50px rgba(0,229,255,0.2);}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:3rem;}
+.about-block{padding:2rem;background:rgba(6,14,26,0.8);border:1px solid rgba(0,229,255,0.07);position:relative;}
+.about-block-label{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:4px;color:rgba(0,229,255,0.3);text-transform:uppercase;margin-bottom:1rem;}
+.about-block-val{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:600;color:var(--bright);}
+.about-block-sub{font-size:11px;color:rgba(168,200,232,0.4);margin-top:.3rem;}
+.skill-bar-wrap{margin-top:2.5rem;}
+.skill-bar-item{margin-bottom:1.2rem;}
+.skill-bar-head{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(168,200,232,0.5);margin-bottom:.4rem;letter-spacing:2px;}
+.skill-bar-head span:last-child{color:rgba(0,229,255,0.5);}
+.skill-bar-bg{height:2px;background:rgba(0,229,255,0.06);}
+.skill-bar-fill{height:100%;background:linear-gradient(90deg,rgba(0,229,255,0.3),var(--cyan));box-shadow:0 0 6px rgba(0,229,255,0.4);width:0;transition:width 1.2s ease;}
+.interests-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2.5rem;}
+.interest-item{padding:1.2rem;border:1px solid rgba(0,229,255,0.07);background:rgba(0,229,255,0.02);display:flex;align-items:center;gap:.8rem;}
+.interest-icon{font-size:1.3rem;width:32px;text-align:center;}
+.interest-text{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(168,200,232,0.5);letter-spacing:2px;}
+
+/* FOOTER */
+footer{margin-top:5rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.07);display:flex;justify-content:space-between;align-items:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.25);letter-spacing:3px;text-transform:uppercase;}
+.footer-glow{color:rgba(0,229,255,0.3);text-shadow:0 0 6px rgba(0,229,255,0.2);}
+
+@media(max-width:640px){
+  .posts-grid,.projects-grid,.related-grid,.about-grid,.interests-grid,.proj-filter{grid-template-columns:1fr;}
+  .post-card.featured{grid-column:1;grid-template-columns:1fr;}
+  .about-strip,.contact-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  h1{font-size:1.6rem;}
+  #music-player{left:1rem;bottom:1rem;padding:.5rem .8rem;}
+}
+
+/* SECRET DOT */
+#secret-dot{opacity:0;font-size:18px;cursor:none!important;transition:opacity .4s;user-select:none;color:rgba(255,220,0,0.01);}
+#secret-dot:hover{opacity:1!important;color:rgba(255,220,0,0.5);}
+
+/* SECRET MODAL */
+#secret-modal{position:fixed;inset:0;z-index:98000;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.97);backdrop-filter:blur(8px);}
+#secret-modal.open{display:flex;}
+.modal-box{border:1px solid rgba(255,220,0,0.2);background:rgba(5,10,5,0.95);padding:3rem;max-width:380px;width:90%;text-align:center;position:relative;}
+.modal-box::before{content:'⚠ ACCESS RESTRICTED ⚠';position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,220,0,0.5);background:rgba(5,10,5,0.95);padding:0 10px;white-space:nowrap;}
+.modal-chick{font-size:3rem;margin-bottom:1rem;animation:chickanim 2s ease-in-out infinite;}
+@keyframes chickanim{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.modal-title{font-family:'Orbitron',monospace;font-size:.9rem;color:rgba(255,220,0,0.7);letter-spacing:3px;margin-bottom:.5rem;}
+.modal-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(200,200,150,0.4);letter-spacing:2px;margin-bottom:2rem;}
+.modal-input-wrap{position:relative;margin-bottom:1rem;}
+.modal-input-wrap{display:flex;flex-direction:column;gap:.7rem;}
+#secret-username,#secret-input{width:100%;background:rgba(255,220,0,0.04);border:1px solid rgba(255,220,0,0.2);color:rgba(255,220,0,0.8);font-family:'Share Tech Mono',monospace;font-size:13px;padding:.8rem 1rem;text-align:center;letter-spacing:3px;outline:none;transition:border-color .3s;}
+#secret-username:focus,#secret-input:focus{border-color:rgba(255,220,0,0.5);box-shadow:0 0 12px rgba(255,220,0,0.1);}
+#secret-username::placeholder,#secret-input::placeholder{letter-spacing:2px;font-size:10px;color:rgba(255,220,0,0.2);}
+.modal-btn{width:100%;padding:.8rem;background:transparent;border:1px solid rgba(255,220,0,0.3);color:rgba(255,220,0,0.7);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;cursor:none;transition:all .3s;margin-bottom:.8rem;}
+.modal-btn:hover{border-color:rgba(255,220,0,0.7);color:rgba(255,220,0,1);box-shadow:0 0 16px rgba(255,220,0,0.15);}
+.modal-close{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(200,200,150,0.25);letter-spacing:2px;cursor:none;background:none;border:none;transition:color .3s;}
+.modal-close:hover{color:rgba(200,200,150,0.5);}
+.modal-error{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,80,80,0.7);letter-spacing:2px;margin-top:.5rem;height:16px;}
+.modal-shake{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* SECRET PAGE */
+#page-secret{background:transparent;}
+.secret-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 30% 40%,rgba(255,220,0,0.07) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(255,180,0,0.05) 0%,transparent 50%);}
+.secret-header{text-align:center;padding:4rem 0 2rem;position:relative;}
+.chick-big{font-size:5rem;animation:chickbig 3s ease-in-out infinite;display:inline-block;filter:drop-shadow(0 0 20px rgba(255,220,0,0.5));}
+@keyframes chickbig{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.secret-title{font-family:'Orbitron',monospace;font-size:clamp(1.4rem,4vw,2.5rem);font-weight:700;letter-spacing:3px;margin:1rem 0 .5rem;}
+.secret-title .y{color:#ffe000;text-shadow:0 0 20px rgba(255,224,0,0.7),0 0 40px rgba(255,200,0,0.3);}
+.secret-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,220,100,0.4);letter-spacing:4px;margin-bottom:3rem;}
+.chick-parade{display:flex;justify-content:center;gap:1rem;font-size:1.8rem;margin-bottom:3rem;flex-wrap:wrap;}
+.chick-parade span{animation:parade 2s ease-in-out infinite;display:inline-block;}
+.chick-parade span:nth-child(1){animation-delay:0s}
+.chick-parade span:nth-child(2){animation-delay:.2s}
+.chick-parade span:nth-child(3){animation-delay:.4s}
+.chick-parade span:nth-child(4){animation-delay:.6s}
+.chick-parade span:nth-child(5){animation-delay:.8s}
+.chick-parade span:nth-child(6){animation-delay:1s}
+.chick-parade span:nth-child(7){animation-delay:1.2s}
+@keyframes parade{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.secret-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:3rem;}
+.secret-card{padding:2rem 1.5rem;background:rgba(255,220,0,0.03);border:1px solid rgba(255,220,0,0.1);text-align:center;transition:all .4s;cursor:none;}
+.secret-card:hover{background:rgba(255,220,0,0.07);border-color:rgba(255,220,0,0.3);transform:translateY(-4px);}
+.sc-emoji{font-size:2.5rem;margin-bottom:1rem;display:block;}
+.sc-title{font-family:'Orbitron',monospace;font-size:.75rem;color:rgba(255,220,0,0.7);letter-spacing:2px;margin-bottom:.5rem;}
+.sc-desc{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,200,100,0.4);letter-spacing:1px;line-height:1.8;}
+.secret-msg{text-align:center;padding:2.5rem;border:1px solid rgba(255,220,0,0.12);background:rgba(255,220,0,0.02);margin-bottom:3rem;position:relative;}
+.secret-msg::before{content:'🐥 SECRET MESSAGE 🐥';position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,220,0,0.4);background:var(--bg);padding:0 10px;white-space:nowrap;}
+.secret-msg p{font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:2.2;color:rgba(255,220,100,0.55);}
+.secret-msg p .yhl{color:#ffe000;text-shadow:0 0 8px rgba(255,224,0,0.5);}
+.secret-counter{display:flex;gap:2px;justify-content:center;margin-bottom:3rem;}
+.sc-num{padding:1.5rem 2rem;background:rgba(255,220,0,0.04);border:1px solid rgba(255,220,0,0.1);text-align:center;min-width:100px;}
+.sc-num-val{font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:#ffe000;text-shadow:0 0 16px rgba(255,224,0,0.5);}
+.sc-num-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:rgba(255,200,100,0.35);margin-top:.3rem;text-transform:uppercase;}
+.chick-rain{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.chick-drop{position:absolute;top:-50px;font-size:1.2rem;animation:raindrop linear infinite;opacity:.4;}
+@keyframes raindrop{to{transform:translateY(110vh) rotate(360deg);opacity:0;}}
+
+/* JOJO SECTION */
+.jojo-section{text-align:center;padding:3rem 1rem 2rem;position:relative;z-index:1;}
+.jojo-question{font-family:'Orbitron',monospace;font-size:clamp(1.4rem,4vw,2.2rem);font-weight:700;color:#ffe000;text-shadow:0 0 20px rgba(255,224,0,0.6),0 0 50px rgba(255,200,0,0.2);margin-bottom:2rem;animation:jojowave 3s ease-in-out infinite;}
+@keyframes jojowave{0%,100%{text-shadow:0 0 20px rgba(255,224,0,0.6),0 0 50px rgba(255,200,0,0.2)}50%{text-shadow:0 0 40px rgba(255,224,0,0.9),0 0 80px rgba(255,200,0,0.4)}}
+.jojo-input-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;}
+#jojo-input{background:rgba(255,220,0,0.04);border:none;border-bottom:2px solid rgba(255,220,0,0.3);color:#ffe000;font-family:'Orbitron',monospace;font-size:1.1rem;padding:.8rem 1.5rem;text-align:center;letter-spacing:4px;outline:none;width:280px;transition:all .4s;}
+#jojo-input:focus{border-bottom-color:#ffe000;box-shadow:0 4px 20px rgba(255,224,0,0.15);background:rgba(255,220,0,0.06);}
+#jojo-input::placeholder{color:rgba(255,220,0,0.2);font-size:.9rem;letter-spacing:2px;}
+#jojo-send{padding:.7rem 2rem;background:transparent;border:1px solid rgba(255,220,0,0.35);color:rgba(255,220,0,0.7);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;cursor:none;transition:all .3s;}
+#jojo-send:hover{border-color:#ffe000;color:#ffe000;box-shadow:0 0 16px rgba(255,224,0,0.2);}
+.jojo-response{margin-top:2rem;min-height:60px;font-family:'Orbitron',monospace;font-size:1.4rem;color:#ffe000;text-shadow:0 0 16px rgba(255,224,0,0.7);animation:fadeIn .5s ease;display:none;}
+.jojo-response.show{display:block;}
+.jojo-emojis{font-size:2rem;margin-top:.5rem;animation:chickbig 2s ease-in-out infinite;}
+
+/* LOVE SECTION */
+.love-section{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:3rem;position:relative;z-index:1;}
+.love-card{padding:2.5rem 2rem;border:1px solid rgba(255,220,0,0.12);background:rgba(255,220,0,0.025);position:relative;overflow:hidden;transition:all .4s;cursor:none;}
+.love-card::before{content:'';position:absolute;top:0;right:0;width:2px;height:0;background:#ffe000;box-shadow:0 0 10px rgba(255,224,0,0.6);transition:height .4s;}
+.love-card:hover::before{height:100%;}
+.love-card:hover{background:rgba(255,220,0,0.05);border-color:rgba(255,220,0,0.3);transform:translateY(-3px);}
+.love-card:nth-child(1){grid-column:1/-1;}
+.love-num{font-family:'Orbitron',monospace;font-size:9px;color:rgba(255,220,0,0.25);letter-spacing:4px;margin-bottom:.8rem;}
+.love-emoji{font-size:2rem;margin-bottom:1rem;display:block;}
+.love-text{font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2.2;color:rgba(255,220,100,0.65);margin-bottom:1.5rem;}
+.love-sign{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,220,0,0.4);letter-spacing:2px;text-align:left;}
+
+/* ADMIN PANEL */
+.admin-bar{display:none;background:rgba(255,220,0,0.06);border:1px solid rgba(255,220,0,0.2);padding:.8rem 1.5rem;margin-bottom:2rem;align-items:center;justify-content:space-between;position:relative;z-index:2;}
+.admin-bar.show{display:flex;}
+.admin-bar-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,220,0,0.5);}
+.admin-bar-label span{color:#ffe000;text-shadow:0 0 6px rgba(255,224,0,0.4);}
+.admin-edit-btn{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,220,0,0.5);border:1px solid rgba(255,220,0,0.2);padding:4px 12px;background:none;cursor:none;transition:all .3s;}
+.admin-edit-btn:hover{color:#ffe000;border-color:#ffe000;}
+/* EDIT MODAL */
+#edit-modal{position:fixed;inset:0;z-index:98500;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.97);backdrop-filter:blur(8px);}
+#edit-modal.open{display:flex;}
+.edit-box{border:1px solid rgba(255,220,0,0.2);background:rgba(5,10,5,0.98);padding:2.5rem;max-width:560px;width:92%;position:relative;max-height:80vh;overflow-y:auto;}
+.edit-box::-webkit-scrollbar{width:4px;}
+.edit-box::-webkit-scrollbar-thumb{background:rgba(255,220,0,0.2);}
+.edit-box::before{content:'✏ ویرایش متن‌ها';position:absolute;top:-9px;right:1.5rem;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,220,0,0.4);background:rgba(5,10,5,0.98);padding:0 8px;}
+.edit-field{margin-bottom:1.5rem;}
+.edit-field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,220,0,0.4);margin-bottom:.4rem;text-transform:uppercase;}
+.edit-field textarea{width:100%;background:rgba(255,220,0,0.03);border:1px solid rgba(255,220,0,0.12);color:rgba(255,220,100,0.7);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;padding:.7rem 1rem;outline:none;resize:vertical;min-height:80px;transition:border-color .3s;}
+.edit-field textarea:focus{border-color:rgba(255,220,0,0.4);}
+.edit-actions{display:flex;gap:.8rem;justify-content:flex-end;margin-top:1rem;}
+.edit-save{padding:.7rem 1.8rem;background:rgba(255,220,0,0.08);border:1px solid rgba(255,220,0,0.4);color:#ffe000;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;cursor:none;transition:all .3s;}
+.edit-save:hover{background:rgba(255,220,0,0.15);box-shadow:0 0 12px rgba(255,220,0,0.15);}
+.edit-cancel{padding:.7rem 1.2rem;background:none;border:1px solid rgba(255,220,0,0.1);color:rgba(255,220,0,0.3);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:all .3s;}
+.edit-cancel:hover{color:rgba(255,220,0,0.5);}
+
+/* LOVE CARD STYLES */
+.love-card-sm .love-text{font-size:11px;}
+.love-card-md .love-text{font-size:13px;}
+.love-card-lg .love-text{font-size:16px;line-height:2.4;}
+.love-card-xl .love-text{font-size:20px;line-height:2.6;font-weight:500;}
+
+.love-border-default{border:1px solid rgba(255,220,0,0.12);}
+.love-border-glow{border:1px solid rgba(255,220,0,0.5);box-shadow:0 0 20px rgba(255,220,0,0.08),inset 0 0 20px rgba(255,220,0,0.03);}
+.love-border-double{border:3px double rgba(255,220,0,0.3);}
+.love-border-dashed{border:1px dashed rgba(255,220,0,0.3);}
+.love-border-thick{border:2px solid rgba(255,220,0,0.4);border-top:4px solid #ffe000;}
+.love-border-minimal{border:none;border-bottom:1px solid rgba(255,220,0,0.15);}
+
+.love-card-full{grid-column:1/-1;}
+
+/* ADD CARD BUTTON */
+.add-card-btn{grid-column:1/-1;padding:1.5rem;border:1px dashed rgba(255,220,0,0.2);background:rgba(255,220,0,0.02);display:flex;align-items:center;justify-content:center;gap:.8rem;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,220,0,0.3);cursor:none;transition:all .4s;}
+.add-card-btn:hover{border-color:rgba(255,220,0,0.5);color:rgba(255,220,0,0.6);background:rgba(255,220,0,0.04);}
+
+/* ADD/EDIT MODAL UPGRADE */
+.edit-tabs{display:flex;gap:2px;margin-bottom:1.5rem;}
+.edit-tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:6px 14px;border:1px solid rgba(255,220,0,0.15);color:rgba(255,220,0,0.35);background:none;cursor:none;transition:all .3s;}
+.edit-tab.active{border-color:rgba(255,220,0,0.5);color:#ffe000;background:rgba(255,220,0,0.06);}
+.edit-tab-panel{display:none;}
+.edit-tab-panel.active{display:block;}
+.edit-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.edit-field select{width:100%;background:rgba(255,220,0,0.03);border:1px solid rgba(255,220,0,0.12);color:rgba(255,220,100,0.7);font-family:'Share Tech Mono',monospace;font-size:11px;padding:.6rem .8rem;outline:none;transition:border-color .3s;cursor:none;}
+.edit-field select:focus{border-color:rgba(255,220,0,0.4);}
+.edit-field select option{background:#050a05;}
+.edit-field input[type=text]{width:100%;background:rgba(255,220,0,0.03);border:1px solid rgba(255,220,0,0.12);color:rgba(255,220,100,0.7);font-family:'Share Tech Mono',monospace;font-size:11px;padding:.6rem .8rem;outline:none;transition:border-color .3s;}
+.edit-field input[type=text]:focus{border-color:rgba(255,220,0,0.4);}
+.card-list-item{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border:1px solid rgba(255,220,0,0.08);background:rgba(255,220,0,0.02);margin-bottom:4px;}
+.card-list-item:hover{border-color:rgba(255,220,0,0.2);background:rgba(255,220,0,0.04);}
+.card-list-title{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,220,100,0.55);letter-spacing:1px;}
+.card-list-actions{display:flex;gap:4px;}
+.card-act-btn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border:1px solid rgba(255,220,0,0.15);color:rgba(255,220,0,0.4);background:none;cursor:none;transition:all .3s;}
+.card-act-btn:hover{color:#ffe000;border-color:rgba(255,220,0,0.5);}
+.card-act-btn.del:hover{color:rgba(255,80,80,0.7);border-color:rgba(255,80,80,0.3);}
+.preview-box{padding:1.5rem;border:1px solid rgba(255,220,0,0.12);background:rgba(255,220,0,0.025);margin-top:1rem;font-family:'IBM Plex Mono',monospace;color:rgba(255,220,100,0.6);line-height:2;min-height:60px;}
+.size-preview-sm{font-size:11px;}
+.size-preview-md{font-size:13px;}
+.size-preview-lg{font-size:16px;}
+.size-preview-xl{font-size:20px;}
+
+/* LOVE CARD WIDTHS */
+.love-section{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+.love-card{grid-column:span 2;}
+.love-card-full{grid-column:1/-1;}
+.love-card-three-quarter{grid-column:span 3;}
+.love-card-two-third{grid-column:span 3;}
+.love-card-half{grid-column:span 2;}
+.love-card-third{grid-column:span 1;min-width:0;}
+.love-card-quarter{grid-column:span 1;min-width:0;}
+@media(max-width:640px){
+  .love-section{grid-template-columns:1fr;}
+  .love-card,.love-card-full,.love-card-three-quarter,.love-card-two-third,.love-card-half,.love-card-third,.love-card-quarter{grid-column:1/-1;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+
+<!-- MUSIC PLAYER -->
+<div id="music-player">
+  <button id="music-toggle" onclick="toggleMusic()">⏸</button>
+  <div class="mp-wave" id="mp-wave">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div>
+    <div class="mp-title">Interstellar — Hans Zimmer</div>
+    <div class="mp-sub">NOW PLAYING</div>
+  </div>
+</div>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div id="boot-lines"></div>
+  <div id="boot-progress-wrap"><div id="boot-progress"></div></div>
+</div>
+
+<canvas id="stars"></canvas>
+<div class="circuit-bg"></div>
+<div class="wormhole"></div>
+
+<div class="page" id="main-page">
+
+  <nav>
+    <div class="logo" onclick="showPage('home')" style="cursor:none">EE://علی‌اکبری</div>
+    <div class="nav-status"><div class="status-dot"></div>ONLINE</div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home');return false;" id="nav-home" class="active">/خانه</a>
+      <a href="#" onclick="showPage('article');return false;" id="nav-article">/مقاله</a>
+      <a href="#" onclick="showPage('projects');return false;" id="nav-projects">/پروژه‌ها</a>
+      <a href="#" onclick="showPage('about');return false;" id="nav-about">/درباره</a>
+      <a href="#" onclick="toggleContact();return false;">/تماس</a>
+    </div>
+  </nav>
+
+  <!-- ========== HOME PAGE ========== -->
+  <div class="spa-page active" id="page-home">
+    <section class="hero">
+      <div class="sys-info">SYS:// مهدی علی‌اکبری — مهندس برق — ایران <span class="blink-cursor"></span></div>
+      <div class="voltage-line">
+        <span>V_IN: 3.3V</span><div class="voltage-bar"></div><span>V_OUT: ∞</span>
+      </div>
+      <h1>
+        <span class="glitch glow" data-text="سیگنال‌هایی از">سیگنال‌هایی از</span><br>
+        لبه‌ی <span class="glow-amber">مدار</span>
+      </h1>
+      <p class="tagline">// مهندسی برق · الکترونیک · کیهان · کد //</p>
+      <div class="cta-row">
+        <button class="btn-primary" onclick="showPage('article')">▸ آخرین مقاله</button>
+        <button class="btn-ghost" onclick="showPage('about')">— درباره من</button>
+      </div>
+    </section>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-num">0x03</span>
+      <span class="divider-label">آخرین انتشارات</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="posts-grid">
+      <article class="post-card featured" onclick="showPage('article')" style="cursor:none">
+        <div>
+          <div class="post-addr">0xA1 // FEATURED_POST</div>
+          <div class="post-tag">مقاله ویژه</div>
+          <h2 class="post-title"><span class="glow">نسبیت</span> در دنیای مهندسی</h2>
+          <p class="post-excerpt">اینشتین می‌گفت زمان نسبی است. اما چقدر این حقیقت در طراحی سیستم‌های GPS، شتاب‌دهنده‌های ذرات، و ارتباطات ماهواره‌ای اهمیت عملی دارد؟</p>
+          <div class="post-meta"><span>۱۵ اردیبهشت ۱۴۰۴</span><span>۸ دقیقه</span></div>
+        </div>
+        <div class="post-visual">
+          <svg width="180" height="130" viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg" style="opacity:.7">
+            <line x1="20" y1="65" x2="60" y2="65" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <line x1="60" y1="65" x2="60" y2="35" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <line x1="60" y1="35" x2="90" y2="35" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <line x1="90" y1="35" x2="90" y2="65" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <line x1="90" y1="65" x2="160" y2="65" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <rect x="62" y="29" width="26" height="12" fill="none" stroke="rgba(255,170,0,0.6)" stroke-width="1.5" rx="2"/>
+            <text x="75" y="39" font-family="monospace" font-size="7" fill="rgba(255,170,0,0.5)" text-anchor="middle">1kΩ</text>
+            <line x1="120" y1="58" x2="120" y2="72" stroke="rgba(0,229,255,0.6)" stroke-width="1.5"/>
+            <line x1="114" y1="58" x2="126" y2="58" stroke="rgba(0,229,255,0.6)" stroke-width="2"/>
+            <line x1="114" y1="62" x2="126" y2="62" stroke="rgba(0,229,255,0.6)" stroke-width="2"/>
+            <rect x="78" y="55" width="24" height="20" fill="rgba(0,229,255,0.04)" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+            <text x="90" y="67" font-family="monospace" font-size="6" fill="rgba(0,229,255,0.5)" text-anchor="middle">IC</text>
+            <circle cx="160" cy="65" r="4" fill="none" stroke="rgba(0,229,255,0.6)" stroke-width="1.5"/>
+            <circle cx="160" cy="65" r="2" fill="rgba(0,229,255,0.5)"/>
+            <polyline points="20,115 32,108 44,115 56,108 68,115 80,108 92,115 104,108 116,115 128,108 140,115 152,108 164,115" fill="none" stroke="rgba(0,255,136,0.35)" stroke-width="1.2"/>
+          </svg>
+        </div>
+      </article>
+      <article class="post-card" onclick="showPage('article')" style="cursor:none">
+        <div class="post-addr">0xA2</div>
+        <div class="post-tag">هوش مصنوعی</div>
+        <h2 class="post-title">شبکه‌های عصبی و <span class="glow">کیهان</span></h2>
+        <p class="post-excerpt">آیا معماری ترانسفورمر با شبکه کیهانی شباهتی دارد؟ نگاهی به توپولوژی‌های موازی.</p>
+        <div class="post-meta"><span>۲ فروردین ۱۴۰۴</span><span>۵ دقیقه</span></div>
+      </article>
+      <article class="post-card" onclick="showPage('article')" style="cursor:none">
+        <div class="post-addr">0xA3</div>
+        <div class="post-tag">ترمودینامیک</div>
+        <h2 class="post-title"><span class="glow">آنتروپی</span> و تیر زمان</h2>
+        <p class="post-excerpt">چرا آینده با گذشته تفاوت دارد؟ مرور اصل دوم ترمودینامیک از زاویه‌ای تازه.</p>
+        <div class="post-meta"><span>۱۸ اسفند ۱۴۰۳</span><span>۶ دقیقه</span></div>
+      </article>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-num">0x04</span>
+      <span class="divider-label">پروژه‌های اخیر</span>
+      <div class="divider-line"></div>
+    </div>
+    <div class="projects-grid">
+      <div class="proj-card">
+        <div class="proj-status done">COMPLETE</div>
+        <div class="proj-title">کنترلر موتور BLDC</div>
+        <p class="proj-desc">درایور سه‌فاز با الگوریتم FOC روی STM32.</p>
+        <div class="proj-stack"><span class="stack-tag">STM32</span><span class="stack-tag">C</span></div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-status wip">IN_PROGRESS</div>
+        <div class="proj-title">آنالیزور طیف RF</div>
+        <p class="proj-desc">آنالیز طیف فرکانس رادیویی با FPGA.</p>
+        <div class="proj-stack"><span class="stack-tag">FPGA</span><span class="stack-tag">Verilog</span></div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-status done">COMPLETE</div>
+        <div class="proj-title">تله‌متری ماهواره</div>
+        <p class="proj-desc">ارسال داده سنسور با پروتکل CAN و رمزنگاری AES.</p>
+        <div class="proj-stack"><span class="stack-tag">CAN</span><span class="stack-tag">AES</span></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <button class="btn-ghost" onclick="showPage('projects')">← مشاهده همه پروژه‌ها</button>
+    </div>
+
+    <!-- TERMINAL -->
+    <div class="terminal-wrap" style="margin-top:4rem">
+      <div class="terminal-bar">
+        <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+        <span class="t-title">mahdi@ee-blog:~$</span>
+      </div>
+      <div id="terminal-output">
+        <div class="t-line ok">سیستم آماده‌است. تایپ کن: <span style="color:var(--cyan)">help</span></div>
+      </div>
+      <div class="t-input-row">
+        <span class="t-prompt">mahdi@ee-blog:~$</span>
+        <input id="t-input" type="text" autocomplete="off" spellcheck="false" placeholder="دستور بزن..." dir="ltr"/>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="contact-wrap" id="contact-wrap">
+      <div class="contact-grid">
+        <div class="form-field"><label>نام</label><input type="text" placeholder="علی رضایی"></div>
+        <div class="form-field"><label>ایمیل</label><input type="email" placeholder="name@example.com" dir="ltr"></div>
+        <div class="form-field form-full"><label>پیام</label><textarea rows="4" placeholder="پیامت رو بنویس..."></textarea></div>
+      </div>
+      <div class="form-submit"><button class="btn-primary">▸ ارسال پیام</button></div>
+    </div>
+
+    <footer>
+      <span>© ۱۴۰۴</span>
+      <span class="footer-glow">V_SYS: NOMINAL</span>
+      <span>فضا — <span class="footer-glow">مدار</span> — کد &nbsp;<button id="secret-btn" onclick="openSecretModal()">◈</button></span>
+    </footer>
+  </div>
+
+  <!-- ========== ARTICLE PAGE ========== -->
+  <div class="spa-page" id="page-article">
+    <div class="article-hero">
+      <a href="#" class="article-back" onclick="showPage('home');return false;">← بازگشت</a>
+      <div class="article-tag">مقاله ویژه · فیزیک کاربردی</div>
+      <div class="article-h1"><span class="glow">نسبیت</span> در دنیای مهندسی</div>
+      <div class="article-meta">
+        <span>مهدی علی‌اکبری</span>
+        <span>۱۵ اردیبهشت ۱۴۰۴</span>
+        <span>۸ دقیقه مطالعه</span>
+      </div>
+    </div>
+
+    <div class="article-body">
+      <p>وقتی اینشتین در سال ۱۹۰۵ نظریه <span class="hl">نسبیت خاص</span> را منتشر کرد، شاید کمتر کسی فکر می‌کرد این معادلات روزی زندگی روزمره ما را تغییر دهند. اما امروز، هر بار که با GPS مسیر خود را پیدا می‌کنیم، در حال استفاده از همان معادلاتی هستیم که یک قرن پیش نوشته شدند.</p>
+
+      <h2>زمان به عنوان <span class="glow">سیگنال</span></h2>
+      <p>در مهندسی ارتباطات، زمان دقیق‌ترین کمیتی است که می‌توان اندازه گرفت. ماهواره‌های GPS هر ثانیه سیگنال‌های دقیقی ارسال می‌کنند. اما این ماهواره‌ها با سرعت حدود <span class="hl">۱۴,۰۰۰ کیلومتر بر ساعت</span> در مدار زمین در حرکتند.</p>
+
+      <div class="article-eq">Δt' = Δt · √(1 − v²/c²)</div>
+
+      <p>طبق نسبیت خاص، ساعت‌های ماهواره به خاطر سرعت زیاد، روزانه حدود <span class="hl-amber">۷ میکروثانیه کُندتر</span> از ساعت‌های روی زمین می‌شوند. از طرفی، نسبیت عام نیز یک اثر مخالف ایجاد می‌کند — چون ماهواره در میدان گرانشی ضعیف‌تری قرار دارد، ساعتش روزانه حدود <span class="hl">۴۵ میکروثانیه سریع‌تر</span> می‌شود.</p>
+
+      <div class="article-callout">
+        <p>ترکیب این دو اثر: بدون تصحیح نسبیتی، خطای تجمعی GPS روزانه حدود ۱۱ کیلومتر می‌شد.</p>
+      </div>
+
+      <h2>FPGA و محاسبات <span class="glow">بلادرنگ</span></h2>
+      <p>در طراحی سیستم‌های پردازش سیگنال دیجیتال، زمان بندی (timing) یکی از حیاتی‌ترین پارامترهاست. در <span class="hl">FPGA</span>ها، تمام محاسبات به صورت موازی و همزمان انجام می‌شوند — برخلاف پردازنده‌های معمولی که دستورالعمل‌ها را به صورت متوالی اجرا می‌کنند.</p>
+
+      <div class="article-img-placeholder">
+        <span>BLOCK DIAGRAM — GPS RECEIVER CHAIN</span>
+      </div>
+
+      <p>این معماری موازی به ما اجازه می‌دهد سیگنال‌های RF را با فرکانس‌های گیگاهرتزی پردازش کنیم. در پروژه آنالیزور طیف که اخیراً روی آن کار می‌کنم، از یک <span class="hl">Xilinx Ultrascale+</span> استفاده کردم که توانایی پردازش ۱۶ میلیارد نمونه در ثانیه را دارد.</p>
+
+      <h2>نتیجه‌گیری</h2>
+      <p>مهندسی در بهترین حالتش جایی است که <span class="hl-amber">نظریه‌های انتزاعی</span> با <span class="hl">مشکلات واقعی</span> تلاقی پیدا می‌کنند. نسبیت اینشتین دیگر فقط یک نظریه فیزیکی نیست — بخشی ضروری از هر سیستم ناوبری مدرن است.</p>
+    </div>
+
+    <div class="related-posts">
+      <div class="related-title">// مقالات مرتبط</div>
+      <div class="related-grid">
+        <article class="post-card" onclick="showPage('article')" style="cursor:none">
+          <div class="post-tag">هوش مصنوعی</div>
+          <h2 class="post-title">شبکه‌های عصبی و <span class="glow">کیهان</span></h2>
+          <div class="post-meta"><span>۲ فروردین</span><span>۵ دقیقه</span></div>
+        </article>
+        <article class="post-card" onclick="showPage('article')" style="cursor:none">
+          <div class="post-tag">ترمودینامیک</div>
+          <h2 class="post-title"><span class="glow">آنتروپی</span> و تیر زمان</h2>
+          <div class="post-meta"><span>۱۸ اسفند</span><span>۶ دقیقه</span></div>
+        </article>
+      </div>
+    </div>
+    <footer style="margin-top:4rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.07);display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.25);letter-spacing:3px;text-transform:uppercase;">
+      <span>© ۱۴۰۴</span><span class="footer-glow">V_SYS: NOMINAL</span><span>فضا — <span class="footer-glow">مدار</span> — کد</span>
+    </footer>
+  </div>
+
+  <!-- ========== PROJECTS PAGE ========== -->
+  <div class="spa-page" id="page-projects">
+    <section class="article-hero">
+      <a href="#" class="article-back" onclick="showPage('home');return false;">← بازگشت</a>
+      <div class="article-h1">پروژه‌های <span class="glow">مهندسی</span></div>
+      <div class="article-meta"><span>۶ پروژه</span><span>۴ کامل شده</span><span>۲ در حال توسعه</span></div>
+    </section>
+
+    <div class="proj-filter">
+      <button class="filter-btn active" onclick="filterProj('all',this)">همه</button>
+      <button class="filter-btn" onclick="filterProj('done',this)">تکمیل‌شده</button>
+      <button class="filter-btn" onclick="filterProj('wip',this)">در حال توسعه</button>
+      <button class="filter-btn" onclick="filterProj('hw',this)">سخت‌افزار</button>
+      <button class="filter-btn" onclick="filterProj('sw',this)">نرم‌افزار</button>
+    </div>
+
+    <div class="projects-grid" id="proj-grid-full">
+      <div class="proj-card-full" data-cat="done hw">
+        <div class="proj-header">
+          <div class="proj-status done">COMPLETE</div>
+          <div class="proj-links"><a href="#" class="proj-link">GitHub</a><a href="#" class="proj-link">Demo</a></div>
+        </div>
+        <div class="proj-title">کنترلر موتور BLDC</div>
+        <p class="proj-desc">طراحی درایور سه‌فاز برای موتورهای بدون جاروبک با الگوریتم Field Oriented Control. شامل کنترل‌کننده PI برای سرعت و جریان، حفاظت اضافه‌ولتاژ، و رابط کاربری سریال.</p>
+        <div class="proj-stack"><span class="stack-tag">STM32F4</span><span class="stack-tag">FOC</span><span class="stack-tag">Embedded C</span><span class="stack-tag">CAN Bus</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:100%"></div></div>
+      </div>
+      <div class="proj-card-full" data-cat="wip hw">
+        <div class="proj-header">
+          <div class="proj-status wip">IN_PROGRESS — 65%</div>
+          <div class="proj-links"><a href="#" class="proj-link">GitHub</a></div>
+        </div>
+        <div class="proj-title">آنالیزور طیف RF</div>
+        <p class="proj-desc">دستگاه آنالیز طیف فرکانس رادیویی با FPGA و ADC پرسرعت. بازه فرکانسی ۱۰MHz تا ۶GHz با رزولوشن ۱kHz. رابط کاربری Python-Qt.</p>
+        <div class="proj-stack"><span class="stack-tag">Xilinx Ultrascale+</span><span class="stack-tag">Verilog</span><span class="stack-tag">Python</span><span class="stack-tag">Qt</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:65%"></div></div>
+      </div>
+      <div class="proj-card-full" data-cat="done hw sw">
+        <div class="proj-header">
+          <div class="proj-status done">COMPLETE</div>
+          <div class="proj-links"><a href="#" class="proj-link">GitHub</a><a href="#" class="proj-link">Paper</a></div>
+        </div>
+        <div class="proj-title">سیستم تله‌متری ماهواره</div>
+        <p class="proj-desc">ماژول ارسال داده سنسور با پروتکل CAN و رمزنگاری AES-128. مصرف توان: ۱۲۰mW در حالت فعال، ۴µW در حالت Sleep.</p>
+        <div class="proj-stack"><span class="stack-tag">CAN 2.0B</span><span class="stack-tag">AES-128</span><span class="stack-tag">ARM Cortex-M0</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:100%"></div></div>
+      </div>
+      <div class="proj-card-full" data-cat="done sw">
+        <div class="proj-header">
+          <div class="proj-status done">COMPLETE</div>
+          <div class="proj-links"><a href="#" class="proj-link">GitHub</a></div>
+        </div>
+        <div class="proj-title">پردازش سیگنال EEG</div>
+        <p class="proj-desc">فیلتر بند گذر و استخراج ویژگی برای سیگنال‌های مغزی در زمان واقعی. دقت تشخیص: ۹۴٪ در شناسایی امواج آلفا.</p>
+        <div class="proj-stack"><span class="stack-tag">DSP</span><span class="stack-tag">MATLAB</span><span class="stack-tag">Python/SciPy</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:100%"></div></div>
+      </div>
+      <div class="proj-card-full" data-cat="wip sw">
+        <div class="proj-header">
+          <div class="proj-status wip">IN_PROGRESS — 40%</div>
+          <div class="proj-links"><a href="#" class="proj-link">GitHub</a></div>
+        </div>
+        <div class="proj-title">شبیه‌ساز مدار کوانتومی</div>
+        <p class="proj-desc">پیاده‌سازی گیت‌های کوانتومی اساسی با ماتریس‌های پیچیده. شامل Hadamard، CNOT، Toffoli.</p>
+        <div class="proj-stack"><span class="stack-tag">Python</span><span class="stack-tag">NumPy</span><span class="stack-tag">Qiskit</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:40%"></div></div>
+      </div>
+      <div class="proj-card-full" data-cat="done hw">
+        <div class="proj-header">
+          <div class="proj-status done">COMPLETE</div>
+          <div class="proj-links"><a href="#" class="proj-link">Schematic</a></div>
+        </div>
+        <div class="proj-title">منبع تغذیه سوئیچینگ</div>
+        <p class="proj-desc">طراحی SMPS با توپولوژی Flyback برای بار ۱۵۰W با بازده ۹۲٪. ولتاژ خروجی: ۱۲V/۲۴V قابل تنظیم.</p>
+        <div class="proj-stack"><span class="stack-tag">Flyback</span><span class="stack-tag">LTspice</span><span class="stack-tag">Altium PCB</span></div>
+        <div class="proj-progress-wrap"><div class="proj-progress" style="width:100%"></div></div>
+      </div>
+    </div>
+    <footer style="margin-top:4rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.07);display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.25);letter-spacing:3px;text-transform:uppercase;">
+      <span>© ۱۴۰۴</span><span class="footer-glow">V_SYS: NOMINAL</span><span>فضا — <span class="footer-glow">مدار</span> — کد</span>
+    </footer>
+  </div>
+
+  <!-- ========== ABOUT PAGE ========== -->
+  <div class="spa-page" id="page-about">
+    <div class="about-full-hero">
+      <a href="#" class="article-back" onclick="showPage('home');return false;">← بازگشت</a>
+      <div class="sys-info">ID:// مهندس برق — تهران — ایران</div>
+      <div class="about-full-name">مهدی <span class="glow">علی‌اکبری</span></div>
+      <p class="tagline" style="margin-top:1rem">// EE_ENG · FPGA · DSP · SPACE_ENTHUSIAST //</p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-block">
+        <div class="about-block-label">تجربه کاری</div>
+        <div class="about-block-val" style="color:var(--cyan);text-shadow:0 0 12px var(--cyan-glow)">+۳</div>
+        <div class="about-block-sub">سال در صنعت</div>
+      </div>
+      <div class="about-block">
+        <div class="about-block-label">پروژه‌های تکمیل‌شده</div>
+        <div class="about-block-val" style="color:var(--green);text-shadow:0 0 12px rgba(0,255,136,0.5)">۲۴+</div>
+        <div class="about-block-sub">پروژه صنعتی و دانشگاهی</div>
+      </div>
+      <div class="about-block">
+        <div class="about-block-label">تحصیلات</div>
+        <div class="about-block-val" style="font-size:1rem">M.Sc. EE</div>
+        <div class="about-block-sub">دانشگاه تهران · ۱۴۰۳</div>
+      </div>
+      <div class="about-block">
+        <div class="about-block-label">مقالات منتشرشده</div>
+        <div class="about-block-val" style="color:var(--amber);text-shadow:0 0 12px rgba(255,170,0,0.5)">۵</div>
+        <div class="about-block-sub">IEEE & Elsevier</div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:3rem">
+      <div class="divider-line"></div>
+      <span class="divider-label">سطح مهارت‌ها</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="skill-bar-wrap" id="skill-bars">
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>FPGA / Verilog</span><span>92%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="92"></div></div></div>
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>Embedded C / C++</span><span>88%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="88"></div></div></div>
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>PCB Design (Altium)</span><span>85%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="85"></div></div></div>
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>Python / DSP</span><span>80%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="80"></div></div></div>
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>Analog Circuit Design</span><span>75%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="75"></div></div></div>
+      <div class="skill-bar-item"><div class="skill-bar-head"><span>Machine Learning</span><span>60%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-w="60"></div></div></div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-label">مسیر تحصیل و کار</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">۱۴۰۳ — حال</div>
+        <div class="tl-title">مهندس ارشد الکترونیک · شرکت فناوری ایرانیان</div>
+        <div class="tl-sub">طراحی سیستم‌های embedded و پردازش سیگنال</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">۱۴۰۱ — ۱۴۰۳</div>
+        <div class="tl-title">کارشناسی ارشد مهندسی برق · دانشگاه تهران</div>
+        <div class="tl-sub">گرایش الکترونیک — پایان‌نامه: کنترل موتور با FPGA</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">۱۳۹۷ — ۱۴۰۱</div>
+        <div class="tl-title">کارشناسی مهندسی برق · دانشگاه صنعتی شریف</div>
+        <div class="tl-sub">رتبه اول ورودی — عضو تیم رباتیک دانشگاه</div>
+      </div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-label">علایق</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="interests-grid">
+      <div class="interest-item"><div class="interest-icon">🔭</div><div class="interest-text">اخترفیزیک و کیهان‌شناسی</div></div>
+      <div class="interest-item"><div class="interest-icon">🎵</div><div class="interest-text">موسیقی فیلم / Hans Zimmer</div></div>
+      <div class="interest-item"><div class="interest-icon">⚛️</div><div class="interest-text">فیزیک کوانتومی</div></div>
+      <div class="interest-item"><div class="interest-icon">🛸</div><div class="interest-text">مهندسی فضایی</div></div>
+      <div class="interest-item"><div class="interest-icon">📡</div><div class="interest-text">رادیو آماتور (HAM)</div></div>
+      <div class="interest-item"><div class="interest-icon">🧩</div><div class="interest-text">الگوریتم‌های بهینه‌سازی</div></div>
+    </div>
+
+    <div class="about-strip" style="margin-top:3rem">
+      <div>
+        <div class="about-label">// نویسنده</div>
+        <div class="about-name">مهدی علی‌اکبری</div>
+        <div class="about-id">EE_ENG · v1.0.4</div>
+        <div class="social-row">
+          <a href="https://github.com" class="social-link" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.1.82-.26.82-.58v-2.03c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.48 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.3c0 .32.22.69.83.57C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://linkedin.com" class="social-link" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.8 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+      <p class="about-desc">
+        مهندس برقی که علاقه‌اش به <span class="highlight">کیهان</span> از کلاس فیزیک شروع شد.
+        اینجا می‌نویسم درباره چیزهایی که ذهنم را درگیر می‌کنند — از <span class="highlight">مدارهای آنالوگ</span>
+        تا پرسش‌هایی که جوابشان را نمی‌دانم. باور دارم بهترین مهندسی آنجاست که
+        <span class="highlight">علم با تخیل</span> تلاقی پیدا می‌کند.
+      </p>
+    </div>
+    <footer style="margin-top:4rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.07);display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(100,160,200,0.25);letter-spacing:3px;text-transform:uppercase;">
+      <span>© ۱۴۰۴</span><span class="footer-glow">V_SYS: NOMINAL</span><span>فضا — <span class="footer-glow">مدار</span> — کد</span>
+    </footer>
+  </div>
+
+
+  <!-- SECRET MODAL -->
+  <div id="secret-modal">
+    <div class="modal-box">
+      <div class="modal-chick">🐥</div>
+      <div class="modal-title">منطقه محدود</div>
+      <div class="modal-sub">// اطلاعات ورود را وارد کنید //</div>
+      <div class="modal-input-wrap">
+        <input id="secret-username" type="text" placeholder="نام کاربری..." maxlength="30" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('secret-input').focus()"/>
+        <input id="secret-input" type="password" placeholder="رمز عبور..." maxlength="30" onkeydown="if(event.key==='Enter')checkSecret()"/>
+      </div>
+      <div class="modal-error" id="modal-error"></div>
+      <button class="modal-btn" onclick="checkSecret()">▸ ورود</button>
+      <button class="modal-close" onclick="closeSecretModal()">انصراف</button>
+    </div>
+  </div>
+
+  <!-- SECRET PAGE -->
+  <div class="spa-page" id="page-secret">
+    <div class="secret-bg"></div>
+    <div class="chick-rain" id="chick-rain"></div>
+
+    <div class="secret-header">
+      <a href="#" class="article-back" onclick="showPage('home');return false;" style="color:rgba(255,220,0,0.4);">← بازگشت</a>
+      <div class="chick-big">🐥</div>
+      <div class="secret-title">خوش اومدی به <span class="y">جوجو‌لند</span> !</div>
+      <div class="secret-sub">// منطقه محرمانه — فقط برای افراد خاص //</div>
+      <div class="chick-parade">
+        <span>🐥</span><span>🐣</span><span>🐤</span><span>🐥</span><span>🐣</span><span>🐤</span><span>🐥</span>
+      </div>
+    </div>
+
+    <!-- JOJO QUESTION -->
+    <div class="jojo-section">
+      <div class="jojo-question">جوجوی من کیههههه؟ 🐥</div>
+      <div class="jojo-input-wrap">
+        <input id="jojo-input" type="text" placeholder="اینجا بنویس..." maxlength="40" onkeydown="if(event.key==='Enter')sendJojo()"/>
+        <button id="jojo-send" onclick="sendJojo()">▸ منم!</button>
+      </div>
+      <div class="jojo-response" id="jojo-response">
+        <div id="jojo-resp-text"></div>
+        <div class="jojo-emojis">🐥💛🐣</div>
+      </div>
+    </div>
+
+    <!-- ADMIN BAR -->
+    <div class="admin-bar" id="admin-bar">
+      <div class="admin-bar-label">🔧 حالت ادمین — <span>مهدی</span></div>
+      <button class="admin-edit-btn" onclick="openEditModal()">✏ ویرایش متن‌ها</button>
+    </div>
+
+    <!-- LOVE LETTERS -->
+    <div class="love-section">
+
+      <div class="love-card love-romantic">
+        <div class="love-num">۰۱</div>
+        <div class="love-emoji">💛</div>
+        <div class="love-text">
+          جوجو،<br><br>
+          توی این دنیا که همه‌چیز با فرمول و معادله توضیح داده میشه،
+          هیچ معادله‌ای پیدا نکردم که بتونه توضیح بده چرا
+          وقتی اسمت میاد تو ذهنم، همه‌چیز دیگه‌ای اهمیت نداره.
+        </div>
+        <div class="love-sign">— مهدی 🐥</div>
+      </div>
+
+      <div class="love-card love-poetic">
+        <div class="love-num">۰۲</div>
+        <div class="love-emoji">🌙</div>
+        <div class="love-text">
+          ساعت ۲ شبه، اسیلوسکوپ روشنه،<br>
+          سیگنال‌ها بالا پایین می‌رن —<br>
+          ولی ذهنم پیش توئه.<br><br>
+          شاید تو هم یه جور سیگنالی،<br>
+          که فرکانسش با قلبم هم‌فازه.
+        </div>
+        <div class="love-sign">— ۲:۱۷ AM 🌙</div>
+      </div>
+
+      <div class="love-card love-playful">
+        <div class="love-num">۰۳</div>
+        <div class="love-emoji">⚡</div>
+        <div class="love-text">
+          اگه قلبم یه مدار بود،<br>
+          تو VCC اش بودی —<br>
+          بدون تو، همه‌چیز قطعه.
+          <br><br>
+          (این رمانتیک‌ترین چیزیه که یه مهندس برق می‌تونه بگه 😂)
+        </div>
+        <div class="love-sign">— با محبت، جوجوی تو 🐥</div>
+      </div>
+
+      <div class="love-card love-deep">
+        <div class="love-num">۰۴</div>
+        <div class="love-emoji">🔭</div>
+        <div class="love-text">
+          می‌دونی چرا فضا رو دوست دارم؟<br><br>
+          چون بی‌نهایته — مثل حسی که بهت دارم.<br>
+          ستاره‌ها میلیاردها سال نورانن —<br>
+          من فقط می‌خوام یه عمر کنارت باشم.
+        </div>
+        <div class="love-sign">— همیشه ✨</div>
+      </div>
+
+      <div class="love-card love-romantic">
+        <div class="love-num">۰۵</div>
+        <div class="love-emoji">🐣</div>
+        <div class="love-text">
+          جوجو، صادقانه بگم —<br><br>
+          از بین همه سیگنال‌هایی که تو زندگیم دریافت کردم،
+          تو قوی‌ترین، واضح‌ترین و زیباترینشی.
+          هیچ noise ای نمی‌تونه صدات رو خاموش کنه.
+        </div>
+        <div class="love-sign">— مهدیت 💛</div>
+      </div>
+
+      <div class="love-card love-playful">
+        <div class="love-num">۰۶</div>
+        <div class="love-emoji">🌟</div>
+        <div class="love-text">
+          وقتی خندیدنت رو می‌بینم،<br>
+          فکر می‌کنم Interstellar بی‌خود
+          دنبال معجزه گشت —<br><br>
+          معجزه همین‌جا بود،
+          تو بودی.
+        </div>
+        <div class="love-sign">— جوجوی تو 🐥💛</div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;margin-bottom:4rem">
+      <button class="modal-btn" style="max-width:300px;display:inline-block" onclick="showPage('home')">← بازگشت به دنیای واقعی</button>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div id="edit-modal">
+    <div class="edit-box" style="max-width:640px;">
+      <div class="edit-tabs">
+        <button class="edit-tab active" onclick="switchTab('list',this)">📋 متن‌ها</button>
+        <button class="edit-tab" onclick="switchTab('add',this)">➕ افزودن</button>
+        <button class="edit-tab" onclick="switchTab('edit-one',this)" id="tab-editone" style="display:none">✏ ویرایش</button>
+      </div>
+
+      <!-- TAB: LIST -->
+      <div class="edit-tab-panel active" id="tab-panel-list">
+        <div id="card-list"></div>
+        <div class="edit-actions" style="margin-top:1.2rem;">
+          <button class="edit-cancel" onclick="closeEditModal()">← بازگشت</button>
+        </div>
+      </div>
+
+      <!-- TAB: ADD -->
+      <div class="edit-tab-panel" id="tab-panel-add">
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>ایموجی</label>
+            <input type="text" id="new-emoji" placeholder="💛" maxlength="4" value="💛"/>
+          </div>
+          <div class="edit-field">
+            <label>امضا</label>
+            <input type="text" id="new-sign" placeholder="— مهدی 🐥"/>
+          </div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>اندازه متن</label>
+            <select id="new-size">
+              <option value="sm">کوچک (۱۱px)</option>
+              <option value="md" selected>متوسط (۱۳px)</option>
+              <option value="lg">بزرگ (۱۶px)</option>
+              <option value="xl">خیلی بزرگ (۲۰px)</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>کادربندی</label>
+            <select id="new-border">
+              <option value="default">ساده</option>
+              <option value="glow">درخشنده</option>
+              <option value="double">دوبله</option>
+              <option value="dashed">خط‌چین</option>
+              <option value="thick">ضخیم</option>
+              <option value="minimal">مینیمال</option>
+            </select>
+          </div>
+        </div>
+        <div class="edit-field" style="margin-bottom:.8rem">
+          <label>عرض کارت</label>
+          <select id="new-width">
+            <option value="quarter">یک‌چهارم (۲۵٪)</option>
+            <option value="third">یک‌سوم (۳۳٪)</option>
+            <option value="" selected>نصف صفحه (۵۰٪)</option>
+            <option value="two-third">دو‌سوم (۶۶٪)</option>
+            <option value="three-quarter">سه‌چهارم (۷۵٪)</option>
+            <option value="full">تمام عرض (۱۰۰٪)</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label>متن</label>
+          <textarea id="new-text" rows="5" placeholder="متن عاشقانه‌ات رو اینجا بنویس..." oninput="updatePreview()"></textarea>
+        </div>
+        <div class="preview-box size-preview-md" id="add-preview">پیش‌نمایش اینجا نمایش داده میشه...</div>
+        <div class="edit-actions">
+          <button class="edit-cancel" onclick="closeEditModal()">انصراف</button>
+          <button class="edit-save" onclick="addNewCard()">▸ اضافه کن</button>
+        </div>
+      </div>
+
+      <!-- TAB: EDIT ONE -->
+      <div class="edit-tab-panel" id="tab-panel-edit-one">
+        <input type="hidden" id="editing-index"/>
+        <div class="edit-row">
+          <div class="edit-field"><label>ایموجی</label><input type="text" id="eo-emoji" maxlength="4"/></div>
+          <div class="edit-field"><label>امضا</label><input type="text" id="eo-sign"/></div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>اندازه متن</label>
+            <select id="eo-size">
+              <option value="sm">کوچک</option>
+              <option value="md">متوسط</option>
+              <option value="lg">بزرگ</option>
+              <option value="xl">خیلی بزرگ</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>کادربندی</label>
+            <select id="eo-border">
+              <option value="default">ساده</option>
+              <option value="glow">درخشنده</option>
+              <option value="double">دوبله</option>
+              <option value="dashed">خط‌چین</option>
+              <option value="thick">ضخیم</option>
+              <option value="minimal">مینیمال</option>
+            </select>
+          </div>
+        </div>
+        <div class="edit-field" style="margin-bottom:.8rem">
+          <label>عرض کارت</label>
+          <select id="eo-width">
+            <option value="quarter">یک‌چهارم (۲۵٪)</option>
+            <option value="third">یک‌سوم (۳۳٪)</option>
+            <option value="">نصف صفحه (۵۰٪)</option>
+            <option value="two-third">دو‌سوم (۶۶٪)</option>
+            <option value="three-quarter">سه‌چهارم (۷۵٪)</option>
+            <option value="full">تمام عرض (۱۰۰٪)</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label>متن</label>
+          <textarea id="eo-text" rows="5"></textarea>
+        </div>
+        <div class="edit-actions" style="justify-content:space-between;">
+          <button class="edit-cancel" onclick="backToList()">← بازگشت</button>
+          <div style="display:flex;gap:.6rem;">
+            <button class="edit-cancel" onclick="closeEditModal()">انصراف</button>
+            <button class="edit-save" onclick="saveOneEdit()">▸ ذخیره تغییرات</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- end .page -->
+
+<script>
+// CURSOR
+const cur=document.getElementById('cursor'),trail=document.getElementById('cursor-trail');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';trail.style.left=e.clientX+'px';trail.style.top=e.clientY+'px';});
+document.addEventListener('mousedown',()=>{cur.style.transform='translate(-50%,-50%) scale(1.8)';trail.style.width='40px';trail.style.height='40px';});
+document.addEventListener('mouseup',()=>{cur.style.transform='translate(-50%,-50%) scale(1)';trail.style.width='28px';trail.style.height='28px';});
+
+// MUSIC — Web Audio API Interstellar-style ambient
+let audioCtx=null,musicNodes=[],isPlaying=false;
+function buildInterstellar(){
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const master=audioCtx.createGain(); master.gain.setValueAtTime(0.18,audioCtx.currentTime); master.connect(audioCtx.destination);
+  const reverb=audioCtx.createConvolver();
+  const rLen=audioCtx.sampleRate*4, rBuf=audioCtx.createBuffer(2,rLen,audioCtx.sampleRate);
+  for(let c=0;c<2;c++){const d=rBuf.getChannelData(c);for(let i=0;i<rLen;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/rLen,1.5);}
+  reverb.buffer=rBuf; reverb.connect(master);
+  const delay=audioCtx.createDelay(4); delay.delayTime.value=1.8;
+  const delayGain=audioCtx.createGain(); delayGain.gain.value=0.35;
+  reverb.connect(delay); delay.connect(delayGain); delayGain.connect(reverb);
+  // Interstellar main notes (simplified: A3 D4 F4 A4 pattern)
+  const notes=[220,293.66,349.23,440,523.25,293.66,220,174.61];
+  const noteDur=3.5;
+  function playNote(freq,startT,dur){
+    const osc=audioCtx.createOscillator(), g=audioCtx.createGain();
+    osc.type='sine'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0,startT);
+    g.gain.linearRampToValueAtTime(0.5,startT+dur*0.2);
+    g.gain.linearRampToValueAtTime(0.35,startT+dur*0.7);
+    g.gain.linearRampToValueAtTime(0,startT+dur);
+    osc.connect(g); g.connect(reverb);
+    osc.start(startT); osc.stop(startT+dur+.1);
+    musicNodes.push(osc);
+  }
+  // organ pad — low drone
+  function playDrone(freq,startT){
+    const osc=audioCtx.createOscillator(), g=audioCtx.createGain();
+    osc.type='triangle'; osc.frequency.value=freq/2;
+    g.gain.setValueAtTime(0.08,startT);
+    osc.connect(g); g.connect(reverb);
+    osc.start(startT);
+    musicNodes.push(osc);
+    return osc;
+  }
+  playDrone(110,audioCtx.currentTime);
+  playDrone(146.83,audioCtx.currentTime);
+  function scheduleLoop(startT){
+    notes.forEach((f,i)=>playNote(f,startT+i*noteDur,noteDur*1.1));
+    setTimeout(()=>{if(isPlaying)scheduleLoop(audioCtx.currentTime);},notes.length*noteDur*1000-500);
+  }
+  scheduleLoop(audioCtx.currentTime+0.1);
+  isPlaying=true;
+}
+function toggleMusic(){
+  const btn=document.getElementById('music-toggle');
+  const wave=document.getElementById('mp-wave');
+  if(!audioCtx){buildInterstellar();btn.textContent='⏸';return;}
+  if(isPlaying){audioCtx.suspend();btn.textContent='▶';wave.classList.add('paused');isPlaying=false;}
+  else{audioCtx.resume();btn.textContent='⏸';wave.classList.remove('paused');isPlaying=true;}
+}
+
+// BOOT
+const bootLines=[
+  {t:'BIOS v2.4.1 — مهدی علی‌اکبری EE System',cls:'',d:0},
+  {t:'Initializing memory... 8192MB OK',cls:'ok',d:300},
+  {t:'Loading kernel modules...',cls:'',d:600},
+  {t:'EE_BLOG_ENGINE v1.0.4 loaded',cls:'ok',d:900},
+  {t:'Mounting /home/mahdi/blog...',cls:'',d:1100},
+  {t:'WARNING: creativity overflow detected',cls:'warn',d:1400},
+  {t:'Loading Interstellar soundtrack...',cls:'ok',d:1700},
+  {t:'All systems nominal. Starting...',cls:'ok',d:2000},
+];
+const bootEl=document.getElementById('boot-lines'),progress=document.getElementById('boot-progress');
+bootLines.forEach(l=>setTimeout(()=>{
+  const d=document.createElement('div');d.className='boot-line'+(l.cls?' '+l.cls:'');d.textContent=l.t;bootEl.appendChild(d);
+  progress.style.width=((bootLines.indexOf(l)+1)/bootLines.length*100)+'%';
+},l.d));
+setTimeout(()=>{
+  const bs=document.getElementById('boot-screen');
+  bs.classList.add('fade-out');
+  document.getElementById('main-page').classList.add('visible');
+  setTimeout(()=>{bs.style.display='none';},700);
+  // Auto-start music after boot
+  setTimeout(()=>{buildInterstellar();},800);
+},2800);
+
+// STARS
+const canvas=document.getElementById('stars'),ctx=canvas.getContext('2d');
+let stars=[];
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+function initStars(){stars=[];for(let i=0;i<260;i++)stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.1+.1,alpha:Math.random()*.6+.1,speed:Math.random()*.4+.05,drift:(Math.random()-.5)*.08,color:Math.random()>.85?[0,229,255]:[180,220,255]});for(let i=0;i<8;i++)stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+1.5,alpha:.8,speed:Math.random()*.6+.2,drift:(Math.random()-.5)*.05,color:[0,229,255]});}
+function drawStars(){ctx.clearRect(0,0,canvas.width,canvas.height);stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(${s.color[0]},${s.color[1]},${s.color[2]},${s.alpha})`;ctx.fill();s.alpha+=Math.sin(Date.now()*.001*s.speed)*.004;s.alpha=Math.max(.05,Math.min(.9,s.alpha));s.x+=s.drift;if(s.x<0)s.x=canvas.width;if(s.x>canvas.width)s.x=0;});requestAnimationFrame(drawStars);}
+window.addEventListener('resize',()=>{resize();initStars();});resize();initStars();drawStars();
+
+// SPA NAVIGATION
+function showPage(name){
+  document.querySelectorAll('.spa-page').forEach(p=>{p.classList.remove('active','visible');});
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  const pg=document.getElementById('page-'+name);
+  if(!pg)return;
+  pg.classList.add('active');
+  setTimeout(()=>pg.classList.add('visible'),10);
+  const nav=document.getElementById('nav-'+name);
+  if(nav)nav.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='about')setTimeout(animateSkillBars,400);
+}
+
+// Skill bars animation
+function animateSkillBars(){
+  document.querySelectorAll('.skill-bar-fill').forEach(b=>{
+    b.style.width=b.dataset.w+'%';
+  });
+}
+
+// Project filter
+function filterProj(cat,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.proj-card-full').forEach(c=>{
+    if(cat==='all'||c.dataset.cat.includes(cat))c.style.display='';
+    else c.style.display='none';
+  });
+}
+
+// Contact toggle
+function toggleContact(){
+  const cw=document.getElementById('contact-wrap');
+  cw.classList.toggle('open');
+  if(cw.classList.contains('open'))cw.scrollIntoView({behavior:'smooth'});
+}
+
+// TERMINAL
+const commands={
+  help:()=>[{t:'دستورات موجود:',cls:'info'},{t:'about     — درباره مهدی',cls:''},{t:'skills    — مهارت‌ها',cls:''},{t:'projects  — پروژه‌ها',cls:''},{t:'contact   — تماس',cls:''},{t:'music     — وضعیت موزیک',cls:''},{t:'clear     — پاک کردن',cls:''},{t:'ping      — تست اتصال',cls:''}],
+  about:()=>[{t:'مهدی علی‌اکبری — مهندس برق',cls:'info'},{t:'دانشگاه صنعتی شریف → دانشگاه تهران',cls:''},{t:'تخصص: الکترونیک، FPGA، پردازش سیگنال',cls:''},{t:'علاقه‌مند به: کیهان، فیزیک، کد',cls:''}],
+  skills:()=>[{t:'[HARDWARE]  FPGA · Verilog · PCB Design',cls:'info'},{t:'[SOFTWARE]  Embedded C · Python · MATLAB',cls:''},{t:'[PROTOCOLS] CAN · SPI · I2C · UART',cls:''},{t:'[TOOLS]     LTspice · Altium · Git',cls:''}],
+  projects:()=>[{t:'[DONE] کنترلر موتور BLDC — STM32/FOC',cls:'ok'},{t:'[WIP]  آنالیزور طیف RF — FPGA/Verilog',cls:'info'},{t:'[DONE] سیستم تله‌متری ماهواره — CAN/AES',cls:'ok'},{t:'[DONE] پردازش سیگنال EEG — DSP/Python',cls:'ok'},{t:'[WIP]  شبیه‌ساز مدار کوانتومی — Qiskit',cls:'info'}],
+  contact:()=>[{t:'باز کردن فرم تماس...',cls:'ok'},{t:'_form_opened_',cls:'',action:'contact'}],
+  music:()=>[{t:isPlaying?'♪ Interstellar — Hans Zimmer — در حال پخش':'♪ موزیک متوقف شده',cls:isPlaying?'ok':'info'},{t:'برای تغییر: دکمه پایین چپ صفحه',cls:''}],
+  ping:()=>[{t:'PING mahdi.ee.io ...',cls:''},{t:'64 bytes from 127.0.0.1: time=0.4ms',cls:'ok'},{t:'سیستم آنلاین است ✓',cls:'ok'}],
+  clear:()=>'clear',
+};
+const output=document.getElementById('terminal-output'),input=document.getElementById('t-input');
+function addLine(t,cls=''){const d=document.createElement('div');d.className='t-line'+(cls?' '+cls:'');d.textContent=t;output.appendChild(d);output.scrollTop=output.scrollHeight;}
+input.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const cmd=input.value.trim().toLowerCase();if(!cmd)return;
+  addLine(cmd,'cmd');input.value='';
+  if(commands[cmd]){const r=commands[cmd]();if(r==='clear'){output.innerHTML='';return;}r.forEach(x=>{if(x.action==='contact')toggleContact();addLine(x.t,x.cls);});}
+  else{addLine(`command not found: ${cmd}`,'err');addLine('تایپ کن "help" برای لیست دستورات','');}
+});
+
+// SECRET AUTH
+const USERS = {
+  jojo:  { pass: 'jojoo',  role: 'guest' },
+  mahdi: { pass: 'sam203', role: 'admin' },
+};
+let currentRole = 'guest';
+let chickTimer = null, chickSeconds = 0;
+
+// Love texts stored in memory (editable by admin)
+const loveTexts = [
+  { emoji:'💛', num:'۰۱', sign:'— مهدی 🐥', text:'جوجو،\n\nتوی این دنیا که همه‌چیز با فرمول و معادله توضیح داده میشه،\nهیچ معادله‌ای پیدا نکردم که بتونه توضیح بده چرا\nوقتی اسمت میاد تو ذهنم، همه‌چیز دیگه‌ای اهمیت نداره.' },
+  { emoji:'🌙', num:'۰۲', sign:'— ۲:۱۷ AM 🌙', text:'ساعت ۲ شبه، اسیلوسکوپ روشنه،\nسیگنال‌ها بالا پایین می‌رن —\nولی ذهنم پیش توئه.\n\nشاید تو هم یه جور سیگنالی،\nکه فرکانسش با قلبم هم‌فازه.' },
+  { emoji:'⚡', num:'۰۳', sign:'— با محبت، جوجوی تو 🐥', text:'اگه قلبم یه مدار بود،\nتو VCC اش بودی —\nبدون تو، همه‌چیز قطعه.\n\n(این رمانتیک‌ترین چیزیه که یه مهندس برق می‌تونه بگه 😂)' },
+  { emoji:'🔭', num:'۰۴', sign:'— همیشه ✨', text:'می‌دونی چرا فضا رو دوست دارم؟\n\nچون بی‌نهایته — مثل حسی که بهت دارم.\nستاره‌ها میلیاردها سال نورانن —\nمن فقط می‌خوام یه عمر کنارت باشم.' },
+  { emoji:'🐣', num:'۰۵', sign:'— مهدیت 💛', text:'جوجو، صادقانه بگم —\n\nاز بین همه سیگنال‌هایی که تو زندگیم دریافت کردم،\nتو قوی‌ترین، واضح‌ترین و زیباترینشی.\nهیچ noise ای نمی‌تونه صدات رو خاموش کنه.' },
+  { emoji:'🌟', num:'۰۶', sign:'— جوجوی تو 🐥💛', text:'وقتی خندیدنت رو می‌بینم،\nفکر می‌کنم Interstellar بی‌خود\nدنبال معجزه گشت —\n\nمعجزه همین‌جا بود،\nتو بودی.' },
+];
+
+function renderLoveCards(){
+  const section = document.querySelector('.love-section');
+  if(!section) return;
+  section.innerHTML = loveTexts.map((lt,i) => `
+    <div class="love-card">
+      <div class="love-num">${lt.num}</div>
+      <div class="love-emoji">${lt.emoji}</div>
+      <div class="love-text">${lt.text.replace(/\n/g,'<br>')}</div>
+      <div class="love-sign">${lt.sign}</div>
+    </div>
+  `).join('');
+}
+
+function openSecretModal(){
+  document.getElementById('secret-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('secret-username').focus(), 100);
+}
+function closeSecretModal(){
+  document.getElementById('secret-modal').classList.remove('open');
+  document.getElementById('secret-username').value='';
+  document.getElementById('secret-input').value='';
+  document.getElementById('modal-error').textContent='';
+}
+function checkSecret(){
+  const user = document.getElementById('secret-username').value.trim().toLowerCase();
+  const pass = document.getElementById('secret-input').value.trim();
+  if(USERS[user] && USERS[user].pass === pass){
+    currentRole = USERS[user].role;
+    closeSecretModal();
+    showPage('secret');
+    renderLoveCards();
+    startChickRain();
+    startChickTimer();
+    // show admin bar if admin
+    const adminBar = document.getElementById('admin-bar');
+    if(currentRole==='admin') adminBar.classList.add('show');
+    else adminBar.classList.remove('show');
+  } else {
+    const box = document.querySelector('.modal-box');
+    box.classList.remove('modal-shake');
+    void box.offsetWidth;
+    box.classList.add('modal-shake');
+    document.getElementById('modal-error').textContent = '❌ نام کاربری یا رمز اشتباهه';
+    document.getElementById('secret-input').value='';
+  }
+}
+
+// EDIT MODAL
+let numCounter = loveTexts.length + 1;
+function openEditModal(){
+  switchTab('list', document.querySelector('.edit-tab'));
+  renderCardList();
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal(){
+  document.getElementById('edit-modal').classList.remove('open');
+}
+function switchTab(name, btn){
+  document.querySelectorAll('.edit-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.edit-tab-panel').forEach(p=>p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('tab-panel-'+name).classList.add('active');
+  if(name==='list') renderCardList();
+}
+function renderCardList(){
+  const list = document.getElementById('card-list');
+  if(!loveTexts.length){list.innerHTML='<div style="text-align:center;padding:2rem;font-family:Share Tech Mono,monospace;font-size:10px;color:rgba(255,220,0,0.25);letter-spacing:2px">هنوز هیچ متنی نداری!</div>';return;}
+  list.innerHTML = loveTexts.map((lt,i)=>`
+    <div class="card-list-item">
+      <div class="card-list-title">${lt.emoji} متن ${lt.num} — ${lt.text.replace(/\\n/g,' ').substring(0,30)}...</div>
+      <div class="card-list-actions">
+        <button class="card-act-btn" onclick="startEditOne(${i})">✏</button>
+        <button class="card-act-btn del" onclick="deleteCard(${i})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+function startEditOne(i){
+  const lt = loveTexts[i];
+  document.getElementById('editing-index').value = i;
+  document.getElementById('eo-emoji').value = lt.emoji;
+  document.getElementById('eo-sign').value = lt.sign;
+  document.getElementById('eo-text').value = lt.text.replace(/\\n/g,'\n');
+  document.getElementById('eo-size').value = lt.size||'md';
+  document.getElementById('eo-border').value = lt.border||'default';
+  document.getElementById('eo-width').value = lt.width||'';
+  const tab = document.getElementById('tab-editone');
+  tab.style.display='';
+  switchTab('edit-one', tab);
+}
+function saveOneEdit(){
+  const i = parseInt(document.getElementById('editing-index').value);
+  loveTexts[i].emoji  = document.getElementById('eo-emoji').value;
+  loveTexts[i].sign   = document.getElementById('eo-sign').value;
+  loveTexts[i].text   = document.getElementById('eo-text').value.replace(/\n/g,'\\n');
+  loveTexts[i].size   = document.getElementById('eo-size').value;
+  loveTexts[i].border = document.getElementById('eo-border').value;
+  loveTexts[i].width  = document.getElementById('eo-width').value;
+  renderLoveCards();
+  document.getElementById('tab-editone').style.display='none';
+  switchTab('list', document.querySelector('.edit-tab'));
+}
+function deleteCard(i){
+  if(!confirm('این متن حذف بشه؟')) return;
+  loveTexts.splice(i,1);
+  renderLoveCards();
+  renderCardList();
+}
+function updatePreview(){
+  const txt = document.getElementById('new-text').value;
+  const size = document.getElementById('new-size').value;
+  const prev = document.getElementById('add-preview');
+  prev.textContent = txt || 'پیش‌نمایش اینجا نمایش داده میشه...';
+  prev.className = 'preview-box size-preview-'+size;
+}
+function backToList(){
+  document.getElementById('tab-editone').style.display='none';
+  switchTab('list', document.querySelector('.edit-tab'));
+}
+function addNewCard(){
+  const text = document.getElementById('new-text').value.trim();
+  if(!text){alert('متن رو بنویس!');return;}
+  loveTexts.push({
+    emoji:  document.getElementById('new-emoji').value || '💛',
+    num:    '۰'+numCounter++,
+    sign:   document.getElementById('new-sign').value || '— مهدی 🐥',
+    text:   text.replace(/\n/g,'\\n'),
+    size:   document.getElementById('new-size').value,
+    border: document.getElementById('new-border').value,
+    width:  document.getElementById('new-width').value,
+  });
+  renderLoveCards();
+  document.getElementById('new-text').value='';
+  document.getElementById('new-emoji').value='💛';
+  document.getElementById('new-sign').value='';
+  document.getElementById('add-preview').textContent='پیش‌نمایش اینجا نمایش داده میشه...';
+  switchTab('list', document.querySelector('.edit-tab'));
+}
+function startChickRain(){
+  const rain = document.getElementById('chick-rain');
+  rain.innerHTML='';
+  const chicks=['🐥','🐣','🐤','⭐','✨','🌟'];
+  for(let i=0;i<18;i++){
+    const d=document.createElement('div');
+    d.className='chick-drop';
+    d.textContent=chicks[Math.floor(Math.random()*chicks.length)];
+    d.style.left=Math.random()*100+'%';
+    d.style.animationDuration=(Math.random()*4+3)+'s';
+    d.style.animationDelay=(Math.random()*5)+'s';
+    d.style.fontSize=(Math.random()*.8+.8)+'rem';
+    rain.appendChild(d);
+  }
+}
+function startChickTimer(){
+  chickSeconds=0;
+  if(chickTimer)clearInterval(chickTimer);
+  chickTimer=setInterval(()=>{
+    chickSeconds++;
+    const m=String(Math.floor(chickSeconds/60)).padStart(2,'0');
+    const s=String(chickSeconds%60).padStart(2,'0');
+    const el=document.getElementById('chick-timer');
+    if(el)el.textContent=m+':'+s;
+  },1000);
+}
+// close modal on ESC
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSecretModal();});
+
+function sendJojo(){
+  const val = document.getElementById('jojo-input').value.trim();
+  if(!val) return;
+  const responses = [
+    `آره ${val}!! جوجوی منی! 🐥💛`,
+    `${val} جوجوی گلم! ✨🐣`,
+    `وای ${val}! خوش اومدی! 🌟🐥`,
+    `${val} عزیزم! تو بهترین جوجویی! 💛🐤`,
+    `${val}! قلبم گرم شد! 🥺🐥`,
+  ];
+  const r = responses[Math.floor(Math.random()*responses.length)];
+  document.getElementById('jojo-resp-text').textContent = r;
+  const resp = document.getElementById('jojo-response');
+  resp.classList.remove('show');
+  void resp.offsetWidth;
+  resp.classList.add('show');
+  document.getElementById('jojo-input').value='';
+}
+</script>
+</body>
+</html>
