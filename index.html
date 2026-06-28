@@ -894,7 +894,7 @@ footer{margin-top:5rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.
       <a href="#" class="article-back" onclick="showPage('home');return false;" style="color:rgba(255,220,0,0.4);">← بازگشت</a>
       <div class="chick-big">🐥</div>
       <div class="secret-title">خوش اومدی به <span class="y">جوجو‌لند</span> !</div>
-      <div class="secret-sub">// منطقه محرمانه — فقط برای افراد خاص //</div>
+      <div class="secret-sub">// برای تنها جوجوی من، ثنای خوشگلم //</div>
       <div class="chick-parade">
         <span>🐥</span><span>🐣</span><span>🐤</span><span>🐥</span><span>🐣</span><span>🐤</span><span>🐥</span>
       </div>
@@ -1135,6 +1135,14 @@ footer{margin-top:5rem;padding-top:1.8rem;border-top:1px solid rgba(0,229,255,0.
 </div><!-- end .page -->
 
 <script>
+// LOAD SAVED DATA
+(function(){
+  try {
+    const saved = localStorage.getItem('loveTexts_v1');
+    if(saved){ const p=JSON.parse(saved); if(p&&p.length){loveTexts.length=0;p.forEach(x=>loveTexts.push(x));} }
+  } catch(e){}
+})();
+
 // CURSOR
 const cur=document.getElementById('cursor'),trail=document.getElementById('cursor-trail');
 document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';trail.style.left=e.clientX+'px';trail.style.top=e.clientY+'px';});
@@ -1304,17 +1312,22 @@ const loveTexts = [
   { emoji:'🌟', num:'۰۶', sign:'— جوجوی تو 🐥💛', text:'وقتی خندیدنت رو می‌بینم،\nفکر می‌کنم Interstellar بی‌خود\nدنبال معجزه گشت —\n\nمعجزه همین‌جا بود،\nتو بودی.' },
 ];
 
+function saveLoveTexts(){
+  try { localStorage.setItem('loveTexts_v1', JSON.stringify(loveTexts)); } catch(e){}
+}
 function renderLoveCards(){
   const section = document.querySelector('.love-section');
   if(!section) return;
+  const widthClass = {'full':'love-card-full','three-quarter':'love-card-three-quarter','two-third':'love-card-two-third','':'love-card-half','third':'love-card-third','quarter':'love-card-quarter'};
   section.innerHTML = loveTexts.map((lt,i) => `
-    <div class="love-card">
+    <div class="love-card love-card-${lt.size||'md'} love-border-${lt.border||'default'} ${widthClass[lt.width||'']||'love-card-half'}">
       <div class="love-num">${lt.num}</div>
       <div class="love-emoji">${lt.emoji}</div>
       <div class="love-text">${lt.text.replace(/\n/g,'<br>')}</div>
       <div class="love-sign">${lt.sign}</div>
     </div>
-  `).join('');
+  `).join('') + (currentRole==='admin' ? '<button class="add-card-btn" onclick="openEditModal()">➕ افزودن متن جدید</button>' : '');
+  saveLoveTexts();
 }
 
 function openSecretModal(){
